@@ -2,7 +2,6 @@
 #################################################################################
 # WWW.KELSEYSANTOS.COM.BR - contato:kelseysantos@yahoo.com.br
 ###########################################################################INICIO
-# nano /etc/init.d/INSTALLVNCUBUNTU1604 && chmod +x /etc/init.d/INSTALLVNCUBUNTU1604 && echo "alias INSTALLVNCUBUNTU1604='/etc/init.d/INSTALLVNCUBUNTU1604'" >> /root/.bashrc
 MESQRODOU=$(date +%h.%Y)
 DATAQRODOU=$(date +%d%m%y-%H)
 NOMELOG="INSTALLVNCUBUNTU1604"
@@ -25,8 +24,8 @@ chmod -R 755 $PASTASCRIPTS
 INSTALLVNC(){
 apt-get install -y dialog
 clear
+#caminho do servico systemd
 VNCSERVICE=/etc/systemd/system/x11vnc.service
-#apt-get purge --remove -y x11vnc x11vnc-data vnc-java libvncserver0
 apt-get install -y x11vnc
 
 #Definindo variavel
@@ -34,7 +33,7 @@ VNCSENHA=$(tempfile 2>/dev/null)
 trap "rm -f $VNCSENHA" 0 1 2 5 15
 
 #aqui que pega a senha
-dialog --backtitle "Ten Kelsey - Comando Militar do Leste" \
+dialog --backtitle "Script Install VNC in UBuntu 16.04" \
 --title "Alterando Senha do Acesso Remoto" \
 --clear \
 --insecure \
@@ -58,33 +57,31 @@ esac
 #UBUNTU 16.04 CRIANDO O SERVICO VNC
 [ -d /etc/x11vnc.pass ] && chmod 744 /etc/x11vnc.pass
 [ -d $VNCSERVICE ] && systemctl stop x11vnc;rm -f $VNCSERVICE;touch $VNCSERVICE
-echo "[Unit]" >> $VNCSERVICE
-echo "Description=\"x11vnc\"" >> $VNCSERVICE
-echo "Requires=display-manager.service" >> $VNCSERVICE
-echo "After=display-manager.service" >> $VNCSERVICE
-echo " " >> $VNCSERVICE
-echo "[Service]" >> $VNCSERVICE
-echo "ExecStart=/usr/bin/x11vnc -xkb -noxrecord -noxfixes -noxdamage -display :0 -auth guess -rfbauth /etc/x11vnc.pass" >> $VNCSERVICE
-echo "ExecStop=/usr/bin/killall x11vnc" >> $VNCSERVICE
-echo "Restart=on-failure" >> $VNCSERVICE
-echo "Restart-sec=2" >> $VNCSERVICE
-echo " " >> $VNCSERVICE
-echo "[Install]" >> $VNCSERVICE
-echo "WantedBy=multi-user.target" >> $VNCSERVICE
-echo " " >> $VNCSERVICE
+cat > $VNCSERVICE <<-EOF
+[Unit]
+Description="x11vnc"
+Requires=display-manager.service
+After=display-manager.service
+
+[Service]
+ExecStart=/usr/bin/x11vnc -xkb -noxrecord -noxfixes -noxdamage -display :0 -auth guess -rfbauth /etc/x11vnc.pass
+ExecStop=/usr/bin/killall x11vnc
+Restart=on-failure
+Restart-sec=2
+ 
+[Install]
+WantedBy=multi-user.target
+EOF
 
 systemctl daemon-reload;systemctl start x11vnc;systemctl enable x11vnc
 }
-
 
 PRINCIPAL()
 {
 echo "#############################################################" >>$LOGS
 echo " ** INICIO $NOMELOG DO SISTEMA EM: `date`" >>$LOGS
 echo "#############################################################" >>$LOGS
-
 INSTALLVNC
-
 echo "#############################################################" >>$LOGS
 echo " * FIM $NOMELOG EM: `date`." >>$LOGS
 echo "#############################################################" >>$LOGS
